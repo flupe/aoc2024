@@ -1,0 +1,2 @@
+#!/usr/bin/sh
+curl -v -b ./COOKIE "https://adventofcode.com/2024/day/$1/input" -o inputs/$1
