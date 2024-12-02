@@ -3,12 +3,11 @@ import AOC
 type Report = [Int]
 
 safe1 :: Report -> Bool
-safe1 r =
-  let diff  = zipWith (-) (tail r) r
-      range = flip all (map abs diff) $ \v -> v > 0 && v < 4
-      incr  = all (> 0) diff
-      decr  = all (< 0) diff
-   in range && (incr || decr)
+safe1 r = range && (incr || decr)
+  where diff  = zipWith (-) (tail r) r
+        range = all ((\v -> v > 0 && v < 4) . abs) diff
+        incr  = all (>0) diff
+        decr  = all (<0) diff
 
 subs :: Report -> [Report]
 subs [] = []

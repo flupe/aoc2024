@@ -1,8 +1,10 @@
 module AOC
-  ( module Data.Functor
+  ( module Data.Function
+  , module Data.Functor
   , module Data.List
   , module Data.List.Split
   , module Data.Text
+  , module Control.Applicative
   -- , module Text.Megaparsec
   -- , Parser
   -- , parseInput
@@ -11,10 +13,12 @@ module AOC
 
 -- import Control.Applicative (Alternative)
 -- import Control.Monad (MonadPlus)
+import Data.Function ((&))
 import Data.Functor ((<&>))
 import Data.List (sort)
 import Data.List.Split (splitOn)
 import Data.Text (Text)
+import Control.Applicative (liftA2)
 -- import Data.Text.IO qualified as Text (readFile)
 -- import Data.Void (Void)
 -- import System.FilePath
