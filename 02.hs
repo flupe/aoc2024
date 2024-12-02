@@ -1,13 +1,11 @@
-{-# LANGUAGE BlockArguments #-}
-import Data.List.Split
-import Data.Functor ((<&>))
+import AOC
 
 type Report = [Int]
 
 safe1 :: Report -> Bool
 safe1 r =
   let diff  = zipWith (-) (tail r) r
-      range = flip all (map abs diff) \v -> v > 0 && v < 4
+      range = flip all (map abs diff) $ \v -> v > 0 && v < 4
       incr  = all (> 0) diff
       decr  = all (< 0) diff
    in range && (incr || decr)
