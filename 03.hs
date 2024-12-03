@@ -1,10 +1,11 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE NoImplicitPrelude, OverloadedStrings #-}
+
 import AOC
 
 main :: IO ()
 main = do
-  let pairP     = (*) <$ "(" <*> int <* "," <*> int <* ")"
-  let runMuls s = splitOn "mul" s & mapMaybe (run pairP) & sum
+  let pairP     = (*) <$ "(" <*> decimal <* "," <*> decimal <* ")"
+      runMuls s = splitOn "mul" s & mapMaybe (run pairP) & sum
 
   readFile "inputs/3" <&> runMuls >>= print
 

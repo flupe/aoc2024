@@ -1,13 +1,15 @@
+{-# LANGUAGE NoImplicitPrelude, OverloadedStrings #-}
+
 import AOC
 
 type Report = [Int]
 
 safe1 :: Report -> Bool
 safe1 r = range && (incr || decr)
-  where diff  = zipWith (-) (tail r) r
-        range = all ((\v -> v > 0 && v < 4) . abs) diff
-        incr  = all (>0) diff
-        decr  = all (<0) diff
+  where diff  = zipWith (-) (drop 1 r) r
+        range = all ((< 4) . abs) diff
+        incr  = all (> 0) diff
+        decr  = all (< 0) diff
 
 subs :: Report -> [Report]
 subs [] = []

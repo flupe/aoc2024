@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude, OverloadedStrings #-}
+
 import AOC
 
 main :: IO ()
