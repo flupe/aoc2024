@@ -1,0 +1,51 @@
+#!/usr/bin/bash
+set -e
+
+aoc_fetch(){
+  if ! [ -f "inputs/$2" ]; then
+    echo "Fetching input file for day $2"
+    curl -b ./COOKIE "https://adventofcode.com/2024/day/$2/input" \
+         --fail \
+         -o inputs/$2
+  else
+    echo "Input file inputs/$2 already exists."
+  fi
+}
+
+aoc_hs(){
+  printf -v hs "%02d.hs" $2 
+}
+
+case $1 in
+  "fetch")
+    aoc_fetch $@
+    ;;
+
+  "edit")
+    aoc_hs $@
+    nvim $hs
+    ;;
+
+  "init")
+    aoc_fetch $@
+    aoc_hs $@
+    if ! [ -f $hs ]; then
+      sed -e "s/:day:/$2/g" template > $hs
+    else
+      echo "File $hs already exists."
+    fi
+    nvim $hs
+    ;;
+
+  "run")
+    aoc_hs $@
+    runghc $hs
+    ;;
+
+  *)
+    echo "Usage: $0 <subcommand> [options]"
+    echo "Subcommands:"
+    echo "  init <day>   Create daily Haskell source from template"
+    echo "  fetch <day>  Retrieve daily input file"
+    echo "  run <day>    Run daily Haskell source"
+esac
