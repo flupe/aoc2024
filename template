@@ -1,0 +1,9 @@
+{-# LANGUAGE NoImplicitPrelude, OverloadedStrings #-}
+
+import AOC
+
+main :: IO ()
+main = do
+  input <- readFile "inputs/:day:"
+
+  print "hello"

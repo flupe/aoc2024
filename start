@@ -1,0 +1,5 @@
+#!/usr/bin/bash
+./getinput $1
+printf -v hs "%02d.hs" $1
+sed -e "s/:day:/$1/g" template > $hs
+nvim $hs
