@@ -13,7 +13,7 @@ aoc_fetch(){
 }
 
 aoc_hs(){
-  printf -v hs "%02d.hs" $2 
+  printf -v hs "src/%02d.hs" $2
 }
 
 case $1 in
@@ -39,7 +39,12 @@ case $1 in
 
   "run")
     aoc_hs $@
-    runghc $hs
+    runghc -isrc $hs
+    ;;
+
+  "repl")
+    aoc_hs $@
+    ghci -isrc $hs
     ;;
 
   *)
@@ -48,4 +53,5 @@ case $1 in
     echo "  init <day>   Create daily Haskell source from template"
     echo "  fetch <day>  Retrieve daily input file"
     echo "  run <day>    Run daily Haskell source"
+    echo "  repl <day>   Open REPL on daily Haskell source"
 esac
