@@ -3,3 +3,19 @@
 [aoc]: https://adventofcode.com/2024
 
 Plus some [notes about solution snippets](./misc.md).
+
+---
+
+```
+./aoc init 4
+./aoc run 4
+```
+
+```
+Usage: ./aoc <subcommand> [options]
+Subcommands:
+  init <day>   Create daily Haskell source from template
+  fetch <day>  Retrieve daily input file
+  run <day>    Run daily Haskell source
+  repl <day>   Open REPL on daily Haskell source
+```
