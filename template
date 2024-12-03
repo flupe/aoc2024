@@ -1,5 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude, OverloadedStrings #-}
 
+module :mod: where
+
 import AOC
 
 main :: IO ()

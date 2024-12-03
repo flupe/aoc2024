@@ -31,7 +31,7 @@ case $1 in
     aoc_fetch $@
     aoc_hs $@
     if ! [ -f $hs ]; then
-      sed -e "s/:day:/$2/g" template > $hs
+      sed -e "s/:day:/$2/g" -e "s/:mod:/$mod/g" template > $hs
     else
       echo "File $hs already exists."
     fi
