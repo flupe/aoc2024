@@ -1,0 +1,6 @@
+COOKIE
+*.hi
+*.o
+dist-newstyle
+.ghc.*
+inputs
