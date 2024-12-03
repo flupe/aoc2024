@@ -45,7 +45,12 @@ case $1 in
 
   "build")
     aoc_hs $@
-    ghc -main-is $mod -isrc $hs -odir build -hidir build -o build/$mod
+    mkdir -p build
+    ghc -main-is $mod \
+        -O2 \
+        -isrc $hs \
+        -outputdir aux \
+        -o build/$mod
     ;;
 
   "repl")
