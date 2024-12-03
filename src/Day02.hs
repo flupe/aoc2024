@@ -1,5 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude, OverloadedStrings #-}
 
+module Day02 where
+
 import AOC
 
 type Report = [Int]

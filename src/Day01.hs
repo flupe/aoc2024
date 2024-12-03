@@ -1,5 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude, OverloadedStrings #-}
 
+module Day01 where
+
 import AOC
 
 main :: IO ()
