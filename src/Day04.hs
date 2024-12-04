@@ -38,12 +38,8 @@ findHoriz shirt = counted \counter ->
 
 findDiag :: Shirt -> Int
 findDiag shirt = counted \counter -> do
-  let range = 4
-  let maxd  = 2 * 140 - range
-  forM_ [range .. maxd] \d -> do                         -- diagonal selection
-    forM_ [0 .. (d - range) `min` (maxd - d)] $ \s -> do -- diagonal position
-      let y = (d `min` 140) - s
-      let x = 1 + (0 `max` (d - 140)) + s
+  forM_ [4 .. 140] \y ->
+    forM_ [1 .. 137] \x ->
       when ((shirt <$> [ (x + o, y - o) | o <- [0 .. 3] ]) `elem` ["XMAS", "SAMX"]) $
         increment counter
 
