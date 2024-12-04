@@ -1,6 +1,7 @@
 COOKIE
 *.hi
 *.o
-dist-newstyle
 .ghc.*
+build
+aux
 inputs

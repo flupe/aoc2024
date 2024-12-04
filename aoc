@@ -64,6 +64,6 @@ case $1 in
     echo "  init <day>   Create daily Haskell source from template"
     echo "  fetch <day>  Retrieve daily input file"
     echo "  run <day>    Run daily Haskell source"
-    echo "  run <day>    Build daily Haskell source"
+    echo "  build <day>  Build daily Haskell source"
     echo "  repl <day>   Open REPL on daily Haskell source"
 esac
