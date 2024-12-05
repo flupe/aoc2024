@@ -12,6 +12,15 @@ aoc_fetch(){
   fi
 }
 
+aoc_build(){
+  mkdir -p build
+  ghc -main-is $mod \
+      -O2 \
+      -isrc $hs \
+      -outputdir aux \
+      -o build/$mod
+}
+
 aoc_hs(){
   printf -v mod "Day%02d" $2
   hs=src/$mod.hs
@@ -45,12 +54,13 @@ case $1 in
 
   "build")
     aoc_hs $@
-    mkdir -p build
-    ghc -main-is $mod \
-        -O2 \
-        -isrc $hs \
-        -outputdir aux \
-        -o build/$mod
+    aoc_build $@
+    ;;
+
+  "time")
+    aoc_hs $@
+    aoc_build $@
+    hyperfine --warmup 3 -N ./build/$mod
     ;;
 
   "repl")
@@ -66,4 +76,5 @@ case $1 in
     echo "  run <day>    Run daily Haskell source"
     echo "  build <day>  Build daily Haskell source"
     echo "  repl <day>   Open REPL on daily Haskell source"
+    echo "  time <day>   Build and measure daily Haskell program"
 esac
