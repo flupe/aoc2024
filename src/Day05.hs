@@ -4,25 +4,7 @@ module Day05 where
 
 import AOC
 
-import Data.Tuple (swap)
 import Data.Ord (Ordering)
-import Data.List (sortBy, partition)
-
-pairs :: [a] -> [(a, a)]
-pairs []     = []
-pairs (x:xs) = map (x,) xs ++ pairs xs
-
--- >>> pairs [1, 2, 3, 4]
--- [(1,2),(1,3),(1,4),(2,3),(2,4),(3,4)]
-
-middle :: [a] -> Maybe a
-middle xs = go xs xs
-  where go []     _        = Nothing
-        go (_:xs) (_:_:ys) = go xs ys
-        go (x:_)  _        = Just x
-
--- >>> middle [1, 2, 3, 4, 5]
--- Just 3
 
 main :: IO ()
 main = do
@@ -36,7 +18,7 @@ main = do
     updates = lines two & map (splitOn ",") & map (map read)
 
     isValid :: [Int] -> Bool
-    isValid xs = all (not . (`elem` rules) . swap) (pairs xs)
+    isValid = not . any ((`elem` rules) . swap) . consecutivePairs
 
     cmp :: Int -> Int -> Ordering
     cmp x y | (x, y) `elem` rules = LT
