@@ -5,9 +5,9 @@ module Day08 where
 import AOC
 import Data.Text (unpack)
 import Data.Map.Strict (Map)
-import Data.Set (Set)
 import Data.Map.Strict qualified as M
-import Data.Set        qualified as S
+import Data.Set (Set)
+import Data.Set qualified as S
 import Data.Function ( applyWhen )
 
 type Coord = (Int, Int)
@@ -24,13 +24,9 @@ main = do
     antennas :: Map Char [(Int, Int)] =
       foldr (\(y, line) m ->
         foldr (\(x, c) ->
-          applyWhen (c /= '.') $ add c (x, y))
+          applyWhen (c /= '.') $ M.insertWith (++) c [(x, y)])
           m (zip [1..] line))
         M.empty (zip [1..] input)
-      where add :: Char -> (Int, Int) -> Map Char [Coord] -> Map Char [Coord]
-            add k v = M.alter check k
-                where check Nothing   = Just [v]
-                      check (Just vs) = Just (v:vs)
 
     inBounds :: Int -> Int -> Bool
     inBounds x y = x >= 1 && x <= size && y >= 1 && y <= size
