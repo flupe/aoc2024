@@ -20,6 +20,9 @@ module AOC
   , pairs
   , consecutivePairs
   , middle
+  , chunks
+  , partitionBy
+  , partitionByM
   ) where
 
 import Prelude hiding (readFile, lines, read)
@@ -28,6 +31,7 @@ import Prelude qualified
 import Control.Applicative (liftA2)
 import Control.Monad (forM_, when)
 import Control.Monad.ST (runST, ST)
+import Data.Foldable (foldrM)
 import Data.Function ((&))
 import Data.Functor ((<&>))
 import Data.List (sort, sortBy, stripPrefix, partition)
@@ -102,3 +106,23 @@ middle xs = go xs xs
 -- >>> middle [1, 2, 3, 4]
 -- Just 3
 
+chunks :: Int -> [a] -> [[a]]
+chunks n [] = []
+chunks n xs = take n xs : chunks n (drop n xs)
+
+updateAssocWith :: Eq a => (b -> b -> b) -> a -> b -> [(a, b)] -> [(a, b)]
+updateAssocWith f k v [] = []
+updateAssocWith f k v ((k', v'):vs) | k == k' = (k', f v v') : vs
+updateAssocWith f k v (kv:vs) = kv : updateAssocWith f k v vs
+
+partitionBy :: Eq b => (a -> b) -> [a] -> [[a]]
+partitionBy f xs =
+    map (\x -> (f x,[x])) xs
+  & foldr (uncurry $ updateAssocWith (++)) []
+  & map snd
+
+partitionByM :: (Monad m, Eq b) => (a -> m b) -> [a] -> m [[a]]
+partitionByM f xs =
+      mapM (\x -> (,[x]) <$> f x) xs
+  <&> foldr (uncurry $ updateAssocWith (++)) []
+  <&> map snd

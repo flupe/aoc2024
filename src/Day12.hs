@@ -6,7 +6,9 @@ module Day12 where
 import AOC
 import AOC.Union as Union
 
-import Control.Monad (filterM, foldM)
+import Data.Foldable (foldMap')
+import Data.Bifunctor (bimap)
+import Control.Monad (filterM, foldM, forM)
 import Control.Monad.ST (ST)
 import Data.STRef
 import Data.List (groupBy)
@@ -35,36 +37,26 @@ costs Farm{..} = runST do
   forM_ (range ((0, 0), (size, size))) \c -> do
 
     -- find plots surrounding corner, grouped by plant type
-    cs <- 
-      cornering c
-        &   mapM (\p -> (,p) <$> find u p)
-        <&> sort -- WARNING: groupBy only groups consecutive items...
-        <&> groupBy (\x y -> fst x == fst y)
-        <&> map (map snd)
+    cs <- cornering c & partitionByM (find u)
 
     forM_ cs \case
-      [x, y, z, w]         -> pure ()
-      [x, y] | aligned x y -> pure ()
-      [x, y]               -> addCorners u x 2
-      x:_                  -> addCorners u x 1
+      [x]                 -> addCorners u x 1
+      [x, y] | inDiag x y -> addCorners u x 2
+      [x, y, z]           -> addCorners u x 1
+      _                   -> pure ()
 
   -- compute costs
   plots <- filterM (isRoot u) $ range bounds
-  cost1 <- newSTRef 0
-  cost2 <- newSTRef 0
 
-  forM_ plots \p -> do
-    (Sum perim, Sum corners) <- getAnn  u p
-    area                     <- getSize u p
-    
-    modifySTRef' cost1 (+ perim   * area)
-    modifySTRef' cost2 (+ corners * area)
+  (Sum cost1, Sum cost2) <- foldMap' id <$> forM plots \p -> do
+    area <- Sum <$> getSize u p
+    bimap (* area) (* area) <$> getAnn u p
 
-  (,) <$> readSTRef cost1 <*> readSTRef cost2
+  pure (cost1, cost2)
 
   where
-    aligned :: Coord -> Coord -> Bool
-    aligned (y1, x1) (y2, x2) = y1 == y2 || x1 == x2
+    inDiag :: Coord -> Coord -> Bool
+    inDiag (y1, x1) (y2, x2) = y1 /= y2 && x1 /= x2
 
     bounds :: (Coord, Coord)
     bounds = ((1, 1), (size, size))
