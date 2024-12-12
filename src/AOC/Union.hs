@@ -71,10 +71,10 @@ union u@Union{..} x y = do
     ax <- readArray anns x
     ay <- readArray anns y
     if sx < sy then do
-      writeArray roots  x y
-      writeArray sizes  y (sx + sy)
-      writeArray anns y (ax <> ay)
+      writeArray roots x y
+      writeArray sizes y (sx + sy)
+      writeArray anns  y $! ax <> ay
     else do
-      writeArray roots  y x
-      writeArray sizes  x (sx + sy)
-      writeArray anns x (ax <> ay)
+      writeArray roots y x
+      writeArray sizes x (sx + sy)
+      writeArray anns  x $! ax <> ay
