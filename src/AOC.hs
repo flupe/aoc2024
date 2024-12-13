@@ -110,16 +110,25 @@ chunks :: Int -> [a] -> [[a]]
 chunks n [] = []
 chunks n xs = take n xs : chunks n (drop n xs)
 
+-- >>> chunks 3 [1 .. 7]
+-- [[1,2,3],[4,5,6],[7]]
+
 updateAssocWith :: Eq a => (b -> b -> b) -> a -> b -> [(a, b)] -> [(a, b)]
-updateAssocWith f k v [] = []
+updateAssocWith f k v [] = [(k, v)]
 updateAssocWith f k v ((k', v'):vs) | k == k' = (k', f v v') : vs
 updateAssocWith f k v (kv:vs) = kv : updateAssocWith f k v vs
+
+-- >>> updateAssocWith (+) 1 5 [(2, 7), (1, 1)]
+-- [(2,7),(1,6)]
 
 partitionBy :: Eq b => (a -> b) -> [a] -> [[a]]
 partitionBy f xs =
     map (\x -> (f x,[x])) xs
   & foldr (uncurry $ updateAssocWith (++)) []
   & map snd
+
+-- >>> partitionBy (`mod` 3) [1..7]
+-- [[1,4,7],[3,6],[2,5]]
 
 partitionByM :: (Monad m, Eq b) => (a -> m b) -> [a] -> m [[a]]
 partitionByM f xs =
