@@ -17,7 +17,7 @@ cross :: Coord -> Coord -> Int
 cross (x1, y1) (x2, y2) = x1 * y2 - y1 * x2
 
 score :: Machine -> Maybe Int
-score (Machine a@(ax, ay) b@(bx, by) p@(px, py)) =
+score (Machine a b p) =
   (3 * x + y) <$ guard (xr == 0 && yr == 0)
   where d       = cross a b
         (y, yr) = cross a p `divMod` d
