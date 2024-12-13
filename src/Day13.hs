@@ -3,11 +3,9 @@
 module Day13 where
 
 import AOC
-import Data.Text (strip)
-import Control.Monad (guard)
 
-type Coord = (Int, Int)
-data Machine = Machine { a :: Coord, b :: Coord, prize :: Coord} deriving Show
+type Coord   = (Int, Int)
+data Machine = Machine Coord Coord Coord
 
 machineP :: Parser Machine
 machineP = Machine
@@ -15,16 +13,15 @@ machineP = Machine
   <*> ((,) <$ "Button B: X+" <*> decimal <* ", Y+" <*> decimal <* "\n")
   <*> ((,) <$ "Prize: X="    <*> decimal <* ", Y=" <*> decimal)
 
+cross :: Coord -> Coord -> Int
+cross (x1, y1) (x2, y2) = x1 * y2 - y1 * x2
+
 score :: Machine -> Maybe Int
-score (Machine (ax, ay) (bx, by) (px, py)) = do
-  let y1 = ax * py - ay * px
-      y2 = ax * by - ay * bx
-      x1 = by * px - bx * py
-      x2 = by * ax - bx * ay
-      y  = y1 `div` y2
-      x  = x1 `div` x2
-  guard (x1 `rem` x2 == 0 && y1 `rem` y2 == 0)
-  pure (3 * x + y)
+score (Machine a@(ax, ay) b@(bx, by) p@(px, py)) =
+  (3 * x + y) <$ guard (xr == 0 && yr == 0)
+  where d       = cross a b
+        (y, yr) = cross a p `divMod` d
+        (x, xr) = cross p b `divMod` d
 
 main :: IO ()
 main = do

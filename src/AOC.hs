@@ -29,7 +29,7 @@ import Prelude hiding (readFile, lines, read)
 import Prelude qualified
 
 import Control.Applicative (liftA2)
-import Control.Monad (forM_, when)
+import Control.Monad (forM_, when, guard)
 import Control.Monad.ST (runST, ST)
 import Data.Foldable (foldrM)
 import Data.Function ((&))
@@ -37,7 +37,7 @@ import Data.Functor ((<&>))
 import Data.List (sort, sortBy, stripPrefix, partition)
 import Data.Maybe (listToMaybe, mapMaybe)
 import Data.STRef (STRef, newSTRef, readSTRef, modifySTRef')
-import Data.Text (Text, lines, splitOn, unpack)
+import Data.Text (Text, lines, splitOn, unpack, strip)
 import Data.Text qualified as Text
 import Data.Text.IO (readFile)
 import Data.Tuple (swap)
