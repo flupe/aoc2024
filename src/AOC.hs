@@ -21,6 +21,8 @@ module AOC
   , consecutivePairs
   , middle
   , chunks
+  , updateAssocWith
+  , insertAssoc
   , partitionBy
   , partitionByM
   ) where
@@ -117,6 +119,11 @@ updateAssocWith :: Eq a => (b -> b -> b) -> a -> b -> [(a, b)] -> [(a, b)]
 updateAssocWith f k v [] = [(k, v)]
 updateAssocWith f k v ((k', v'):vs) | k == k' = (k', f v v') : vs
 updateAssocWith f k v (kv:vs) = kv : updateAssocWith f k v vs
+
+insertAssoc :: Eq a => a -> b -> [(a, b)] -> [(a, b)]
+insertAssoc k v [] = [(k, v)]
+insertAssoc k v ((k', _ ):kvs) | k == k' = (k , v ):kvs
+insertAssoc k v ((k', v'):kvs)           = (k', v'):insertAssoc k v kvs
 
 -- >>> updateAssocWith (+) 1 5 [(2, 7), (1, 1)]
 -- [(2,7),(1,6)]
