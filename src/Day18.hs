@@ -5,22 +5,14 @@ module Day18 (main) where
 import AOC
 
 import Data.Ord (Down(Down))
-import Control.Monad (foldM, filterM, forM)
-import Control.Monad.ST (ST)
-import Data.Array (Array)
-import Data.Array.IArray ((!))
-import Data.Array.MArray as MArr
-import Data.Array.IO (IOArray())
-import Data.Array.Unboxed (UArray)
-import Data.Array.ST
-import Data.Maybe (catMaybes, fromMaybe)
-import Data.Set (Set)
-import Data.List (transpose, find, sortOn, group, nub, groupBy)
-import Data.Set qualified as Set
-import Data.Text qualified as Text
-import Control.Arrow (first)
-import Debug.Trace (trace)
+import Data.Array (Array, (!))
+import Data.Array.MArray
+import Data.Array.IO (IOArray)
+import Data.Array.ST (STArray)
 import Data.Foldable (foldrM)
+import Data.Set (Set)
+import Data.Set qualified as Set
+
 
 type Coord = (Int, Int)
 data Cell  = Empty | Wall Time
@@ -31,7 +23,7 @@ type Queue = Set ((Down Time, Dist), Coord)
 
 findPaths :: (Coord, Coord) -> Bool -> Array Coord Cell -> (Down Time, Dist)
 findPaths bounds@(start, end) part2 grid = runST do
-  dists <- MArr.newArray bounds (Down 0, maxBound)
+  dists <- newArray bounds (Down 0, maxBound)
   writeArray dists start (Down maxBound, 0)
   aux dists (Set.singleton ((Down maxBound, 0), start))
   readArray dists end
