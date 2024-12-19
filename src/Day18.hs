@@ -1,7 +1,4 @@
-{-# LANGUAGE GHC2021 #-}
-{-# LANGUAGE NoImplicitPrelude, OverloadedStrings, BlockArguments #-}
-{-# LANGUAGE AllowAmbiguousTypes, PatternSynonyms, ViewPatterns #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE GHC2021, NoImplicitPrelude, OverloadedStrings, BlockArguments, ViewPatterns #-}
 
 
 module Day18 (main) where
@@ -9,9 +6,10 @@ module Day18 (main) where
 import AOC
 import AOC.BFS
 import AOC.Dijkstra
+import AOC.Traversal
 
 import Control.Applicative.Combinators (sepBy)
-import Data.Ord (Down(Down))
+import Data.Ord (Down(..))
 import Data.Array (Array)
 import Data.Array.MArray
 import Data.Array.Base (unsafeAt)
@@ -49,17 +47,20 @@ main = do
 
   let
     part1 :: Dist
-    part1 = bfsTo (BFS bounds next maxBound 0) start end
+    part1 = traversalTo (BFS bounds next) start end
       where
-        next :: Coord -> Dist -> [(Dist, Coord)]
-        next p d =
-          flip mapMaybe (neighbours bounds p) \n ->
-            (,n) <$> case unsafeAt grid (index bounds n) of
-              Empty  -> Just (d + 1)
-              Wall t -> (d + 1) <$ guard (t > 1024)
+        next :: Coord -> Dist -> [Coord]
+        next p d = neighbours bounds p & filter \n ->
+            case unsafeAt grid (index bounds n) of
+              Empty  -> True
+              Wall t -> t > 1024
 
-    (Down part2, _) = dijkstraTo (Dijkstra bounds next maxCost minCost) start end
+    part2 :: Time
+    (getDown -> part2, _) = traversalTo dk start end
       where
+        dk :: Dijkstra Coord Metric
+        dk = Dijkstra bounds next maxCost minCost
+
         next :: Coord -> Metric -> [(Metric, Coord)]
         next p (Down t, d) =
           flip mapMaybe (neighbours bounds p) \n ->

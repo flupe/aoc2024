@@ -1,12 +1,17 @@
-{-# LANGUAGE GHC2021, PatternSynonyms, ViewPatterns, BlockArguments, RecordWildCards #-}
+{-# LANGUAGE GHC2021, PatternSynonyms, ViewPatterns, BlockArguments, RecordWildCards, DerivingVia, DeriveFunctor #-}
+{-# LANGUAGE TypeFamilies #-}
+
 -- | Generic utils for single-source Dijkstra traversal.
 module AOC.Dijkstra
   ( Dijkstra(..)
-  , dijkstra
-  , dijkstraTo
+  -- , dijkstra
+  -- , dijkstraTo
   ) where
 
+
 import AOC
+import AOC.Traversal
+
 import Data.Array (Array)
 import Data.Array.MArray
 import Data.Array.ST (STArray)
@@ -15,73 +20,43 @@ import Data.Foldable (foldrM)
 import Data.Ix
 import Data.Set (Set)
 import Data.Set qualified as Set
+import Data.SequenceClass
 
 
 -- poor man's priority queue
-type PQueue a = Set a
-pattern EmptyQ   <- (Set.minView -> Nothing    )
-pattern (:<:) x q <- (Set.minView -> Just (x, q))
-insert :: Ord a => a -> PQueue a -> PQueue a
-insert = Set.insert
+newtype PQueue a = PQueue (Set a)
 
+instance Store PQueue where
+  type Ok PQueue a = Ord a
+  singleton = PQueue . Set.singleton
+  viewl (PQueue s) =
+    case Set.minView s of
+      Nothing     -> EmptyL
+      Just (x, s) -> x :< PQueue s
+  insert x (PQueue s) = PQueue (Set.insert x s)
 
 -- | Generic single-source Dijkstra interface
 data Dijkstra i c = Dijkstra
   { -- | Bounds the vertices range over.
-    bounds  :: (i, i)
+    dkBounds  :: (i, i)
 
     -- | For a given cell with cost @c@, compute neighbours and their associated cost.
     -- The cost of each neighbour *must* be larger than the one of the input vertex.
-  , next    :: i -> c -> [(c, i)]
+  , dkNext    :: i -> c -> [(c, i)]
 
     -- | Maximal cost for unvisited vertices.
-  , maxCost :: c
+  , dkMaxCost :: c
 
     -- | Initial cost for the source.
-  , minCost :: c
+  , dkMinCost :: c
   }
+
+instance Traversal Dijkstra i c where
+  type St Dijkstra = PQueue
+  bounds  = dkBounds
+  next    = dkNext
+  maxCost = dkMaxCost
+  minCost = dkMinCost
 
 
 -- TODO: find a better priority queue implementation
-
--- | Single-source generic dijkstra.
-dijkstra :: (Ord c, Ix i) => Dijkstra i c -> i -> Array i c
-dijkstra (Dijkstra{..} :: Dijkstra i c) src = runST do
-  costs <- newArray bounds maxCost
-  unsafeWrite costs (index bounds src) minCost
-  aux costs (Set.singleton (minCost, src))
-  freeze costs
-  where
-    aux :: STArray s i c -> PQueue (c, i) -> ST s ()
-    aux costs EmptyQ = pure ()
-    aux costs ((c, x) :<: queue) = -- TODO: pruning?
-      aux costs =<< foldrM (checkNeighbour costs) queue (next x c)
-
-    checkNeighbour :: STArray s i c -> (c, i) -> PQueue (c, i) -> ST s (PQueue (c, i))
-    checkNeighbour costs cy@(c, y) queue = do
-      c' <- unsafeRead costs (index bounds y)
-      if (c' <= c) then pure queue
-                   else do unsafeWrite costs (index bounds y) c
-                           pure $ insert cy queue
-
-
--- | Single-source generic dijkstra with early cutoff at target vertex.
-dijkstraTo :: (Ord c, Ix i) => Dijkstra i c -> i -> i -> c
-dijkstraTo (Dijkstra{..} :: Dijkstra i c) src end = runST do
-  costs <- newArray bounds maxCost
-  unsafeWrite costs (index bounds src) minCost
-  aux costs (Set.singleton (minCost, src))
-  unsafeRead costs (index bounds end)
-  where
-    aux :: STArray s i c -> PQueue (c, i) -> ST s ()
-    aux costs EmptyQ = pure ()
-    aux costs ((c, x) :<: queue) | x == end = pure ()
-    aux costs ((c, x) :<: queue) = -- TODO: pruning?
-      aux costs =<< foldrM (checkNeighbour costs) queue (next x c)
-
-    checkNeighbour :: STArray s i c -> (c, i) -> PQueue (c, i) -> ST s (PQueue (c, i))
-    checkNeighbour costs cy@(c, y) queue = do
-      c' <- unsafeRead costs (index bounds y)
-      if (c' <= c) then pure queue
-                   else do unsafeWrite costs (index bounds y) c
-                           pure $ insert cy queue
