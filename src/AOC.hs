@@ -1,3 +1,4 @@
+{-# LANGUAGE GHC2021, TypeFamilies, ViewPatterns #-}
 module AOC
   ( module Prelude
   , module Control.Applicative
@@ -25,6 +26,8 @@ module AOC
   , insertAssoc
   , partitionBy
   , partitionByM
+  , time
+  , timeIO
   ) where
 
 import Prelude hiding (readFile, lines, read)
@@ -33,17 +36,26 @@ import Prelude qualified
 import Control.Applicative (liftA2)
 import Control.Monad (forM_, when, guard)
 import Control.Monad.ST (runST, ST)
+import Control.DeepSeq (force, NFData)
 import Data.Foldable (foldrM)
 import Data.Function ((&))
 import Data.Functor ((<&>))
 import Data.List (sort, sortBy, stripPrefix, partition)
+import Data.List.NonEmpty (NonEmpty((:|)))
 import Data.Maybe (listToMaybe, mapMaybe)
+import Data.Kind (Type)
 import Data.STRef (STRef, newSTRef, readSTRef, modifySTRef')
 import Data.Text (Text, lines, splitOn, unpack, strip)
 import Data.Text qualified as Text
 import Data.Text.IO (readFile)
 import Data.Tuple (swap)
 import Data.Void (Void)
+import Data.Ix
+import Data.Array.ST
+import Data.Array (Array)
+import Data.Array qualified as Array
+import Data.Array.MArray qualified as MArray
+import System.CPUTime (getCPUTime)
 import Text.Megaparsec (Parsec)
 import Text.Megaparsec qualified as P (parse)
 import Text.Megaparsec.Char.Lexer (decimal)
@@ -142,3 +154,22 @@ partitionByM f xs =
       mapM (\x -> (,[x]) <$> f x) xs
   <&> foldr (uncurry $ updateAssocWith (++)) []
   <&> map snd
+
+
+time :: NFData a => String -> a -> IO a
+time name = timeIO name . pure
+
+timeIO :: NFData a => String -> IO a -> IO a
+timeIO name act = do
+  start         <- getCPUTime
+  (force -> !r) <- act
+  end           <- getCPUTime
+  putStrLn $ name <> ": " <> pretty (end - start)
+  pure r
+
+  where 
+    pretty = pretty' ("ps" :| ["ns", "μs", "ms", "s"]) 0
+
+    pretty' (_ :| u : us) _ x | x > 1000 =
+      pretty' (u :| us) ((x `div` 10) `mod` 100) (x `div` 1000)
+    pretty' (u :| _) r x = show x <> "." <> show r <> u

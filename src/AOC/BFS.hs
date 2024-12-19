@@ -29,6 +29,10 @@ data BFS i c = BFS
 instance Traversal BFS i Int where
   type St BFS = FastQueue
   bounds      = bfsBounds
+  {-# INLINE bounds #-}
   next t x d  = (d + 1,) <$> bfsNext t x d
+  {-# INLINE next #-}
   maxCost     = const maxBound
+  {-# INLINE maxCost #-}
   minCost     = const 0
+  {-# INLINE minCost #-}

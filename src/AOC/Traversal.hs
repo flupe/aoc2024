@@ -17,6 +17,7 @@ import Data.Kind (Type, Constraint)
 import Data.SequenceClass (ViewL(..))
 import Data.SequenceClass qualified as Sequence
 import Data.Sequence.FastQueue (FastQueue)
+import GHC.Arr (unsafeIndex)
 
 
 class Store s where
@@ -30,8 +31,11 @@ class Store s where
 
 instance Store FastQueue where
   singleton = Sequence.singleton
+  {-# INLINE singleton #-}
   viewl     = Sequence.viewl
+  {-# INLINE viewl #-}
   insert    = flip (Sequence.|>)
+  {-# INLINE insert #-}
 
 
 class Traversal t i c where
@@ -47,22 +51,26 @@ traversal
   => t i c -> i -> Array i c
 traversal (t :: t i c) src = runST do
   costs <- newArray (bounds t) (maxCost t)
-  unsafeWrite costs (index (bounds t) src) (minCost t)
+  unsafeWrite costs (index src) (minCost t)
   aux costs (singleton (minCost t, src))
   freeze costs
   where
+    index = unsafeIndex (bounds t)
+    {-# INLINE index #-}
+
     aux :: STArray s i c -> St t (c, i) -> ST s ()
     aux costs (viewl -> EmptyL) = pure ()
     aux costs (viewl -> (c, x) :< queue) = do
-      c' <- unsafeRead costs (index (bounds t) x)
+      c' <- unsafeRead costs (index x)
       when (c <= c') $ aux costs =<< foldrM (checkNeighbour costs) queue (next t x c)
 
     checkNeighbour :: STArray s i c -> (c, i) -> St t (c, i) -> ST s (St t (c, i))
     checkNeighbour costs cy@(c, y) queue = do
-      c' <- unsafeRead costs (index (bounds t) y)
+      c' <- unsafeRead costs (index y)
       if (c' <= c) then pure queue
-                   else do unsafeWrite costs (index (bounds t) y) c
+                   else do unsafeWrite costs (index y) c
                            pure $ insert cy queue
+{-# INLINE traversal #-}
 
 
 traversalTo
@@ -70,20 +78,24 @@ traversalTo
   => t i c -> i -> i -> c
 traversalTo (t :: t i c) src end = runST do
   costs <- newArray (bounds t) (maxCost t)
-  unsafeWrite costs (index (bounds t) src) (minCost t)
+  unsafeWrite costs (index src) (minCost t)
   aux costs (singleton (minCost t, src))
-  unsafeRead costs (index (bounds t) end)
+  unsafeRead costs (index end)
   where
+    index = unsafeIndex (bounds t)
+    {-# INLINE index #-}
+
     aux :: STArray s i c -> St t (c, i) -> ST s ()
     aux costs (viewl -> EmptyL) = pure ()
     aux costs (viewl -> (c, x) :< queue) | x == end = pure ()
     aux costs (viewl -> (c, x) :< queue) = do
-      c' <- unsafeRead costs (index (bounds t) x)
+      c' <- unsafeRead costs (index x)
       when (c <= c') $ aux costs =<< foldrM (checkNeighbour costs) queue (next t x c)
 
     checkNeighbour :: STArray s i c -> (c, i) -> St t (c, i) -> ST s (St t (c, i))
     checkNeighbour costs cy@(c, y) queue = do
-      c' <- unsafeRead costs (index (bounds t) y)
+      c' <- unsafeRead costs (index y)
       if (c' <= c) then pure queue
-                   else do unsafeWrite costs (index (bounds t) y) c
+                   else do unsafeWrite costs (index y) c
                            pure $ insert cy queue
+{-# INLINE traversalTo #-}

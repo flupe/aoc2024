@@ -1,4 +1,5 @@
 {-# LANGUAGE GHC2021, NoImplicitPrelude, OverloadedStrings, BlockArguments, ViewPatterns #-}
+{-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
 
 
 module Day18 (main) where
@@ -16,10 +17,12 @@ import Data.Array.Base (unsafeAt)
 import Data.Array.IO (IOArray)
 import Data.List ((!?))
 import Data.Maybe (fromMaybe)
+import Control.DeepSeq (NFData)
+import GHC.Generics (Generic)
 
 
 type Coord  = (Int, Int)
-data Cell   = Empty | Wall Time
+data Cell   = Empty | Wall !Time deriving (Generic, NFData)
 type Grid   = Array Coord Cell
 type Dist   = Int
 type Time   = Int
@@ -32,45 +35,49 @@ neighbours bounds (x, y) =
 
 
 main :: IO ()
-main = do
-  bytes <-
-    readFile "inputs/18"
-      <&> strip
-      <&> run (sepBy ((,) <$> decimal <* "," <*> decimal) "\n")
-      <&> fromMaybe []
+main = timeIO "day 18" do
 
-  let bounds@(start, end) = ((0, 0), (70, 70))
+  (bounds@(start, end), bytes, grid :: Array Coord Cell) <- timeIO "parsing + setup" do
+    bytes <-
+      readFile "inputs/18"
+        <&> strip
+        <&> run (sepBy ((,) <$> decimal <* "," <*> decimal) "\n")
+        <&> fromMaybe []
 
-  grid :: IOArray Coord Cell <- newArray bounds Empty
-  forM_ (zip bytes (Wall <$> [0..])) $ uncurry $ writeArray grid
-  grid :: Grid <- freeze grid
+    let bounds@(start, end) = ((0, 0), (70, 70))
 
-  let
-    part1 :: Dist
-    part1 = traversalTo (BFS bounds next) start end
-      where
-        next :: Coord -> Dist -> [Coord]
+    grid :: IOArray Coord Cell <- newArray bounds Empty
+    forM_ (zip bytes (Wall <$> [0..])) $ uncurry $ writeArray grid
+
+    (bounds, bytes,) <$> freeze grid
+
+
+  timeIO "part 1" do
+
+    let next :: Coord -> Dist -> [Coord]
         next p d = neighbours bounds p & filter \n ->
             case unsafeAt grid (index bounds n) of
               Empty  -> True
               Wall t -> t > 1024
+    print (traversalTo (BFS bounds next) start end :: Dist)
 
-    part2 :: Time
-    (getDown -> part2, _) = traversalTo dk start end
-      where
-        dk :: Dijkstra Coord Metric
-        dk = Dijkstra bounds next maxCost minCost
 
-        next :: Coord -> Metric -> [(Metric, Coord)]
-        next p (Down t, d) =
-          flip mapMaybe (neighbours bounds p) \n ->
-            (,n) <$> case unsafeAt grid (index bounds n) of
-              Empty   -> Just (Down t, d + 1)
-              Wall t' -> (Down (t `min` t'), d + 1) <$ guard (t > d)
+  timeIO "part 2" do
 
-        maxCost, minCost :: Metric
-        maxCost = (Down 0, maxBound)
-        minCost = (Down maxBound, 0)
+    let (getDown -> part2, _) = traversalTo dk start end
+          where
+            dk :: Dijkstra Coord Metric
+            dk = Dijkstra bounds next maxCost minCost
 
-  print $ part1
-  print $ bytes !? part2
+            next :: Coord -> Metric -> [(Metric, Coord)]
+            next p (Down t, d) =
+              flip mapMaybe (neighbours bounds p) \n ->
+                (,n) <$> case unsafeAt grid (index bounds n) of
+                  Empty   -> Just (Down t, d + 1)
+                  Wall t' -> (Down (t `min` t'), d + 1) <$ guard (t > d)
+
+            maxCost, minCost :: Metric
+            maxCost = (Down 0, maxBound)
+            minCost = (Down maxBound, 0)
+
+    print $ bytes !? part2

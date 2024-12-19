@@ -29,11 +29,14 @@ newtype PQueue a = PQueue (Set a)
 instance Store PQueue where
   type Ok PQueue a = Ord a
   singleton = PQueue . Set.singleton
+  {-# INLINE singleton #-}
   viewl (PQueue s) =
     case Set.minView s of
       Nothing     -> EmptyL
       Just (x, s) -> x :< PQueue s
+  {-# INLINE viewl #-}
   insert x (PQueue s) = PQueue (Set.insert x s)
+  {-# INLINE insert #-}
 
 -- | Generic single-source Dijkstra interface
 data Dijkstra i c = Dijkstra
@@ -54,9 +57,12 @@ data Dijkstra i c = Dijkstra
 instance Traversal Dijkstra i c where
   type St Dijkstra = PQueue
   bounds  = dkBounds
+  {-# INLINE bounds #-}
   next    = dkNext
+  {-# INLINE next #-}
   maxCost = dkMaxCost
+  {-# INLINE maxCost #-}
   minCost = dkMinCost
-
+  {-# INLINE minCost #-}
 
 -- TODO: find a better priority queue implementation
